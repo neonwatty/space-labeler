@@ -27,9 +27,9 @@ cp -R ~/Library/Developer/Xcode/DerivedData/SpaceLabeler-*/Build/Products/Debug/
 open ~/Applications/SpaceLabeler.app
 ```
 
-On first launch, macOS will prompt you to approve SpaceLabeler as a login item. Once approved, it launches automatically on every login.
+The app is ad-hoc signed (no Developer ID), so it does **not** auto-launch at login. After reboot, relaunch it by hitting `Cmd+Space`, typing "Space Labeler", and pressing `Enter`. The menu bar item is back in under a second.
 
-If you ever need to relaunch it manually, hit `Cmd+Space` and type "Space Labeler".
+If you ever want real launch-at-login, either code-sign the app with a persistent identity or add a `~/Library/LaunchAgents/com.jeremywatt.SpaceLabeler.plist` that points `launchd` at the installed binary. `SMAppService.mainApp.register()` looks like it should work for this but silently fails to persist for ad-hoc signed apps.
 
 ## Usage
 
