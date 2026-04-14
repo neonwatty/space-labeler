@@ -15,21 +15,29 @@ Since macOS doesn't natively let you name your Spaces — and `TotalSpaces2` was
 ```sh
 git clone https://github.com/neonwatty/space-labeler.git
 cd space-labeler
-xcodegen generate
-xcodebuild build \
-  -project SpaceLabeler.xcodeproj \
-  -scheme SpaceLabeler \
-  -configuration Debug \
-  -destination 'platform=macOS'
-
-mkdir -p ~/Applications
-cp -R ~/Library/Developer/Xcode/DerivedData/SpaceLabeler-*/Build/Products/Debug/SpaceLabeler.app ~/Applications/
-open ~/Applications/SpaceLabeler.app
+make install
 ```
 
-The app is ad-hoc signed (no Developer ID), so it does **not** auto-launch at login. After reboot, relaunch it by hitting `Cmd+Space`, typing "Space Labeler", and pressing `Enter`. The menu bar item is back in under a second.
+That generates the Xcode project, builds a Release binary, copies it to `~/Applications/SpaceLabeler.app`, and launches it.
 
-If you ever want real launch-at-login, either code-sign the app with a persistent identity or add a `~/Library/LaunchAgents/com.jeremywatt.SpaceLabeler.plist` that points `launchd` at the installed binary. `SMAppService.mainApp.register()` looks like it should work for this but silently fails to persist for ad-hoc signed apps.
+### Launch at login (optional)
+
+```sh
+make install-login
+```
+
+This writes `~/Library/LaunchAgents/com.jeremywatt.SpaceLabeler.plist` and `launchctl load`s it, so the menu bar item comes back automatically after reboot. To uninstall:
+
+```sh
+launchctl unload ~/Library/LaunchAgents/com.jeremywatt.SpaceLabeler.plist
+rm ~/Library/LaunchAgents/com.jeremywatt.SpaceLabeler.plist
+```
+
+Without `install-login`, the app does **not** auto-launch at login — relaunch it after reboot via `Cmd+Space` → "Space Labeler" → `Enter`.
+
+### Why a LaunchAgent instead of `SMAppService`?
+
+The app is ad-hoc signed (no Developer ID). `SMAppService.mainApp.register()` returns `.enabled` with no error for ad-hoc bundles, but macOS's BackgroundTaskManagement daemon silently refuses to persist the record — the app never actually relaunches at login. A LaunchAgent plist is the supported workaround.
 
 ## Usage
 
@@ -40,27 +48,23 @@ Labels and colors persist across reboots in `UserDefaults` under the key `SpaceL
 ## Development
 
 ```sh
-# Regenerate the Xcode project after editing project.yml
+make build      # xcodegen + xcodebuild Release
+make test       # xcodebuild test
+make clean      # remove generated xcodeproj + build/
+```
+
+Or the raw commands:
+
+```sh
 xcodegen generate
-
-# Build
-xcodebuild build \
-  -project SpaceLabeler.xcodeproj \
-  -scheme SpaceLabeler \
-  -configuration Debug \
-  -destination 'platform=macOS'
-
-# Run the test suite
-xcodebuild test \
-  -project SpaceLabeler.xcodeproj \
-  -scheme SpaceLabeler \
-  -destination 'platform=macOS'
-
-# Lint
+xcodebuild build -project SpaceLabeler.xcodeproj -scheme SpaceLabeler \
+  -configuration Release -destination 'platform=macOS' -derivedDataPath build
+xcodebuild test  -project SpaceLabeler.xcodeproj -scheme SpaceLabeler \
+  -destination 'platform=macOS' -derivedDataPath build
 swift-format lint --recursive Sources Tests
 ```
 
-The Xcode project file (`SpaceLabeler.xcodeproj`) is gitignored — the source of truth is `project.yml`. Always run `xcodegen generate` after cloning or after editing `project.yml`.
+The Xcode project file (`SpaceLabeler.xcodeproj`) is gitignored — the source of truth is `project.yml`. Always run `xcodegen generate` (or `make build`, which does it for you) after cloning or after editing `project.yml`.
 
 ## Notes on the private API
 
