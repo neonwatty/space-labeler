@@ -4,6 +4,8 @@ A minimal macOS menu bar app that lets you name and color-code your virtual desk
 
 Since macOS doesn't natively let you name your Spaces — and `TotalSpaces2` was killed by Apple's SIP hardening — SpaceLabeler fills a small but annoying gap. It puts a colored dot and a label in your menu bar that updates whenever you switch Spaces, and lets you rename and recolor each one from a popover.
 
+Website: https://neonwatty.github.io/space-labeler/
+
 ## Requirements
 
 - macOS 13 (Ventura) or later
