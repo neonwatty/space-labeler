@@ -113,6 +113,18 @@ struct EditorPopover: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
+            Button {
+                store.remove(id)
+                if isCurrent {
+                    syncBuffer()
+                }
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(isCurrent ? "Reset current Space label" : "Remove saved Space label")
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 7)
