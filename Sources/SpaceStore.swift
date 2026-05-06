@@ -30,6 +30,11 @@ final class SpaceStore: ObservableObject {
         save()
     }
 
+    func remove(_ id: UInt64) {
+        labels.removeValue(forKey: id)
+        save()
+    }
+
     @discardableResult
     private func autoAssign(_ id: UInt64) -> SpaceLabel {
         let n = labels.count + 1
