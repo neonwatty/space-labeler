@@ -1,11 +1,16 @@
+import AppKit
 import SwiftUI
 
 struct EditorPopover: View {
     @ObservedObject var monitor: SpaceMonitor
     @ObservedObject var store: SpaceStore
 
+    /// Called after a successful jump so the host can close the popover.
+    var onJump: (() -> Void)?
+
     @State private var nameBuffer: String = ""
     @State private var bufferedID: UInt64 = 0
+    @State private var jumpError: String?
 
     private let palette = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#C7B8EA", "#FFA07A"]
 
@@ -16,6 +21,14 @@ struct EditorPopover: View {
 
             sectionLabel("All Spaces")
             spaceList
+
+            if let jumpError {
+                Text(jumpError)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.red)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Divider()
 
@@ -132,6 +145,32 @@ struct EditorPopover: View {
             RoundedRectangle(cornerRadius: 6)
                 .fill(isCurrent ? Color.accentColor.opacity(0.16) : Color.clear)
         )
+        .contentShape(Rectangle())
+        .onTapGesture { jump(to: id) }
+        .onHover { hovering in
+            guard !isCurrent else { return }
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
+        .help(isCurrent ? "Current Space" : "Click to switch to this Space")
+    }
+
+    /// Switches to the Space. On success the host closes the popover; on
+    /// failure an inline message explains how to fix it.
+    private func jump(to id: UInt64) {
+        jumpError = nil
+        guard id != monitor.currentSpaceID else { return }
+        switch SkyLight.switchToSpace(id: id) {
+        case .success:
+            onJump?()
+        case .notFound:
+            jumpError = "这个 Space 不在当前屏幕的桌面序列中，无法跳转"
+        case .indexTooHigh(let limit):
+            jumpError = "Space 序号超过 \(limit)，系统快捷键不支持跳转"
+        case .accessibilityDenied:
+            jumpError = "需要辅助功能权限：设置 → 隐私与安全 → 辅助功能 → 打开 Space Labeler"
+        case .unavailable:
+            jumpError = "跳转不可用：私有 API 解析失败，或系统「切换到桌面 N」快捷键未开启"
+        }
     }
 }
 

@@ -19,7 +19,9 @@ final class StatusItemController {
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 290, height: 380)
         popover.contentViewController = NSHostingController(
-            rootView: EditorPopover(monitor: monitor, store: store)
+            rootView: EditorPopover(monitor: monitor, store: store, onJump: { [weak self] in
+                self?.popover.performClose(nil)
+            })
         )
 
         statusItem.button?.target = self
