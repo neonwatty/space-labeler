@@ -6,6 +6,7 @@ struct EditorPopover: View {
 
     @State private var nameBuffer: String = ""
     @State private var bufferedID: UInt64 = 0
+    @State private var isShowingClearConfirmation = false
 
     private let palette = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#C7B8EA", "#FFA07A"]
 
@@ -15,7 +16,19 @@ struct EditorPopover: View {
             currentCard
 
             sectionLabel("All Spaces")
-            spaceList
+            ScrollView {
+                spaceList
+            }
+            .frame(maxHeight: 300)
+
+            Button {
+                isShowingClearConfirmation = true
+            } label: {
+                Label("Clear All Saved Labels…", systemImage: "trash")
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
 
             Divider()
 
@@ -35,6 +48,19 @@ struct EditorPopover: View {
         .frame(width: 290)
         .onAppear { syncBuffer() }
         .onChange(of: monitor.currentSpaceID) { _ in syncBuffer() }
+        .confirmationDialog(
+            "Clear all saved labels?",
+            isPresented: $isShowingClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Clear All Saved Labels", role: .destructive) {
+                store.removeAll()
+                syncBuffer()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("All saved names and colors will be removed. The current Space will receive a new default label.")
+        }
     }
 
     private func syncBuffer() {
