@@ -56,6 +56,19 @@ final class SpaceStoreTests: XCTestCase {
         XCTAssertEqual(store2.labels[100]?.name, "Docs")
     }
 
+    func test_removeAll_deletesEveryLabelAndPersists() {
+        let store1 = SpaceStore(defaults: defaults)
+        store1.update(99, SpaceLabel(name: "Code", colorHex: "#4ECDC4"))
+        store1.update(100, SpaceLabel(name: "Docs", colorHex: "#FFE66D"))
+
+        store1.removeAll()
+
+        XCTAssertTrue(store1.labels.isEmpty)
+
+        let store2 = SpaceStore(defaults: defaults)
+        XCTAssertTrue(store2.labels.isEmpty)
+    }
+
     func test_autoAssign_rotatesPaletteDeterministically() {
         let store = SpaceStore(defaults: defaults)
         let palette = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#C7B8EA", "#FFA07A"]

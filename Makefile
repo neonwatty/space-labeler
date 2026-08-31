@@ -27,8 +27,9 @@ install: build
 	rm -rf $(HOME)/Applications/$(APP_NAME)
 	cp -R $(BUILD_DIR)/Build/Products/Release/$(APP_NAME) $(HOME)/Applications/
 	@if [ -f "$(HOME)/Library/LaunchAgents/$(LABEL).plist" ]; then \
-	  echo "LaunchAgent detected — restarting managed instance"; \
-	  launchctl kickstart -k "gui/$$(id -u)/$(LABEL)"; \
+	  echo "LaunchAgent detected — reloading managed instance"; \
+	  launchctl bootout "gui/$$(id -u)" "$(HOME)/Library/LaunchAgents/$(LABEL).plist" 2>/dev/null || true; \
+	  launchctl bootstrap "gui/$$(id -u)" "$(HOME)/Library/LaunchAgents/$(LABEL).plist"; \
 	else \
 	  open $(HOME)/Applications/$(APP_NAME); \
 	fi
