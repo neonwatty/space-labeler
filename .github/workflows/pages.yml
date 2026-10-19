@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - index.html
+      - CNAME
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -34,6 +35,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          cp CNAME _site/CNAME
 
       - uses: actions/upload-pages-artifact@v3
         with:
